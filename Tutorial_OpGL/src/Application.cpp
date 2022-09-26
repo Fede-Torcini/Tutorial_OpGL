@@ -18,50 +18,14 @@
 #include "Shader.h"
 #include "Texture.h"
 
+#include "tests/TestClearColor.h"
+#include "tests/TestTwoSnails.h"
+
 void renderWindow(GLFWwindow* window)
 {
-    float positions[] =
-    {
-        -270.0f, -270.0f,  0.0f,  0.0f,
-         270.0f, -270.0f,  1.0f,  0.0f,
-         270.0f,  270.0f,  1.0f,  1.0f,
-        -270.0f,  270.0f,  0.0f,  1.0f
-    };
-
-    unsigned int indices[] =
-    {
-        0,1,2,
-        2,3,0
-    };
-
+    
     GLCall(glEnable(GL_BLEND));
     GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-    VertexArray va;
-    VertexBuffer vb(positions, 4 * 4 * sizeof(float));
-
-    VertexBufferLayout layout;
-    layout.Push(GL_FLOAT, 2);
-    layout.Push(GL_FLOAT, 2);
-    va.AddBuffer(vb, layout);
-
-    IndexBuffer ib(indices, 6);
-
-    glm::mat4 proj = glm::ortho(0.0f, 1920.0f, 0.0f, 1080.0f, -1.0f, 1.0f);
-    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
-
-
-    Shader shader("res/shaders/Basic.shader");
-    shader.Bind();
-
-    Texture texture("res/textures/snail.png");
-    texture.Bind();
-    shader.SetUniform1i("u_Texture", 0);
-
-    va.Unbind();
-    vb.Unbind();
-    ib.Unbind();
-    shader.Unbind();
 
     Renderer renderer;
 
@@ -72,8 +36,14 @@ void renderWindow(GLFWwindow* window)
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init((char*)glGetString(GL_NUM_SHADING_LANGUAGE_VERSIONS));
 
-    glm::vec3 translationA(200.0f, 300.0f, 0);
-    glm::vec3 translationB(700.0f, 900.0f, 0);
+
+    test::Test* currentTest = nullptr;
+    test::TestMenu * testMenu = new test::TestMenu(currentTest);
+    currentTest = testMenu;
+
+    testMenu->RegisterTest<test::TestClearColor>("ClearColor");
+    testMenu->RegisterTest<test::TestTwoSnails>("Draw Two Snails");
+
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -84,28 +54,20 @@ void renderWindow(GLFWwindow* window)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        
-        shader.Bind();
+        if (currentTest)
+        {
+            currentTest->OnUpdate(0.0f);
+            currentTest->OnRender();
+            ImGui::Begin("Test");
+            if (currentTest != testMenu && ImGui::Button("<-"))
+            {
+                delete currentTest;
+                currentTest = testMenu;
+            }
+            currentTest->OnImGuiRender();
+            ImGui::End();
+        }
 
-        //Draw first snail
-        //Set up MVP
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA);
-        glm::mat4 mvp = proj * view * model;
-        shader.SetUniformMat4f("u_MVP", mvp);
-        renderer.Draw(va, ib, shader);
-        
-        //Draw second snail
-        model = glm::translate(glm::mat4(1.0f), translationB);
-        mvp = proj * view * model;
-        shader.SetUniformMat4f("u_MVP", mvp);
-        renderer.Draw(va, ib, shader);
-
-        //Set up imGui
-        ImGui::Begin("Hello, world!");
-        ImGui::SliderFloat3("TranslationA", &translationA.x, 0.0f, 1920.0f);      
-        ImGui::SliderFloat3("TranslationB", &translationB.x, 0.0f, 1920.0f);      
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-        ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

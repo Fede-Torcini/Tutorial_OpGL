@@ -6,6 +6,7 @@ To run on VCS Community
 
     Tutorial_OpGl/Tutorial_OpGl/Dependencies/include 
     Tutorial_OpGl/Tutorial_OpGl/src/vendor
+    Tutorial_OpGl/Tutorial_OpGl/src
 
   Include static Libs
 
