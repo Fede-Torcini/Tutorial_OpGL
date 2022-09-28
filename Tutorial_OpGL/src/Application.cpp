@@ -19,14 +19,12 @@
 #include "Texture.h"
 
 #include "tests/TestClearColor.h"
+#include "tests/Test3DCubeBatch.h"
 #include "tests/TestTwoSnails.h"
+#include <tests/Test3DTexture.h>
 
 void renderWindow(GLFWwindow* window)
 {
-    
-    GLCall(glEnable(GL_BLEND));
-    GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
     Renderer renderer;
 
     IMGUI_CHECKVERSION();
@@ -41,8 +39,11 @@ void renderWindow(GLFWwindow* window)
     test::TestMenu * testMenu = new test::TestMenu(currentTest);
     currentTest = testMenu;
 
+
     testMenu->RegisterTest<test::TestClearColor>("ClearColor");
     testMenu->RegisterTest<test::TestTwoSnails>("Draw Two Snails");
+    testMenu->RegisterTest<test::Test3DCubeBatch>("3d rotating cube");
+    testMenu->RegisterTest<test::Test3DTexture>("3d Rotating cube with texture");
 
 
     /* Loop until the user closes the window */
